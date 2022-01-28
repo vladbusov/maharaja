@@ -51,10 +51,11 @@ int Maharaja::count_ceils(int x, int y) {
     return count-4;
 }
 
-position Maharaja::search_min_pisition() {
+position Maharaja::search_min_position() {
     int x_min,y_min;
 
     int process_num = -1;
+    pid_t p;
 
     int pip[2];
 
@@ -65,8 +66,9 @@ position Maharaja::search_min_pisition() {
         return {};
 
     for (int i = 0; i < processes; i++) {
-        pid_t p = fork();
+        p = fork();
         if (p != 0) {
+            //std::cout << "Создался процесс " << i << std::endl;
             process_num = i;
             break;
         }
@@ -86,33 +88,39 @@ position Maharaja::search_min_pisition() {
             char message[20];
             strcpy(message, tmp_msg.c_str());
             write(pip[1], message, 20);
+            //std::cout << "Процессом " << process_num << " создано сообщение " << message << std::endl;
         }
-        exit(0);
-    } else {
-        int min_c = width*height;
-
-        int nread;
-        char buf[20];
-
+        //std::cout << "Процесс " << process_num << " завершился" << std::endl;
         close(pip[1]);
-        while (true) {
-            int i,j,c;
-            nread = (int)read(pip[0], buf, 20);
-            if (nread == 0) {
-                break;
-            } else if (nread != -1) {
-                sscanf(buf,"%d %d %d", &i, &j, &c);
+        exit(0);
+    }
 
-                if (c < min_c) {
-                    x_min = i;
-                    y_min = j;
-                    min_c = c;
-                }
+    close(pip[1]);
+    int min_c = width*height;
+
+    int nread;
+    char buf[20];
+
+    while (true) {
+        int i,j,c;
+        nread = (int)read(pip[0], buf, 20);
+        if (nread == 0) {
+            break;
+        } else if (nread != -1) {
+            sscanf(buf,"%d %d %d", &i, &j, &c);
+
+            //std::cout << "Процессом " << process_num << " принято сообщение " << i << " " << j << " " << c << std::endl;
+
+            if (c < min_c) {
+                x_min = i;
+                y_min = j;
+                min_c = c;
             }
-
         }
 
     }
+    close(pip[0]);
+
 
     return {x_min,y_min};
 }
@@ -155,7 +163,7 @@ bool Maharaja::take_position(int x, int y) {
 int Maharaja::greedy_filling() {
     int counter = 0;
     while (!full_check()) {
-        position p = search_min_pisition();
+        position p = search_min_position();
         take_position(p.first,p.second);
         counter++;
     }

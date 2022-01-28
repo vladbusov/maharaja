@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <string>
 #include <cstring>
+#include <iostream>
 
 typedef std::pair<int, int> position;
 
@@ -24,7 +25,7 @@ private:
 
     bool full_check();
     int count_ceils(int x, int y);
-    position search_min_pisition();
+    position search_min_position();
 
 public:
     Maharaja(int xM, int yM, int processes) {
