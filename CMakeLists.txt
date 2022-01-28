@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
-project(magaradji)
+project(mpi_mag)
+
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(magaradji main.cpp)
+add_executable(mpi_mag main.cpp maharaja.h maharaja.cpp)
