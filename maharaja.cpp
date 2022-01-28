@@ -4,6 +4,7 @@
 
 #include "maharaja.h"
 
+
 bool Maharaja::full_check() {
         for (auto v : cells)
             if(!v)
@@ -52,18 +53,67 @@ int Maharaja::count_ceils(int x, int y) {
 
 position Maharaja::search_min_pisition() {
     int x_min,y_min;
-    int min_ceils = width*height;
-    for (int i = 0; i < width; i++)
-        for (int j = 0; j < height; j++) {
-            if (cells[j*width + i])
+
+    int process_num = -1;
+
+    int pip[2];
+
+    if (pipe(pip) < 0)
+        return {};
+
+    if (fcntl(pip[0], F_SETFL, O_NONBLOCK) < 0)
+        return {};
+
+    for (int i = 0; i < processes; i++) {
+        pid_t p = fork();
+        if (p != 0) {
+            process_num = i;
+            break;
+        }
+    }
+
+    if (process_num != -1) {
+
+        close(pip[0]);
+
+        for (int k = process_num; k < width * height; k += processes) {
+            int i = k % width;
+            int j = k/width;
+            if (cells[k])
                 continue;
             int c = count_ceils(i, j);
-            if (c < min_ceils) {
-                x_min = i;
-                y_min = j;
-                min_ceils = c;
-            }
+            std::string tmp_msg = std::to_string(i) + " " + std::to_string(j) + " " + std::to_string(c);
+            char message[20];
+            strcpy(message, tmp_msg.c_str());
+            write(pip[1], message, 20);
         }
+        exit(0);
+    } else {
+        int min_c = width*height;
+
+        int nread;
+        char buf[20];
+
+        close(pip[1]);
+        while (true) {
+            int i,j,c;
+            nread = (int)read(pip[0], buf, 20);
+            if (nread == 0) {
+                break;
+            } else if (nread != -1) {
+                sscanf(buf,"%d %d %d", &i, &j, &c);
+
+                if (c < min_c) {
+                    x_min = i;
+                    y_min = j;
+                    min_c = c;
+                }
+            }
+
+        }
+
+    }
+
     return {x_min,y_min};
 }
 

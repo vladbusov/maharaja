@@ -7,12 +7,18 @@
 
 #include <vector>
 #include <algorithm>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string>
+#include <cstring>
+
 typedef std::pair<int, int> position;
 
 class Maharaja {
 private:
     int width;
     int height;
+    int processes;
     std::vector<bool> cells;
     std::vector<position> positions;
 
@@ -21,10 +27,11 @@ private:
     position search_min_pisition();
 
 public:
-    Maharaja(int xM, int yM) {
+    Maharaja(int xM, int yM, int processes) {
         this->width = xM;
         this->height = yM;
         this->cells = std::vector<bool>(xM*yM, false);
+        this->processes = processes;
     };
 
     bool take_position(int x, int y);
